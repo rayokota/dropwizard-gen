@@ -1,0 +1,109 @@
+package com.yammer.<%= service_name %>.service.store;
+
+import com.google.common.base.Optional;
+import com.sleepycat.je.DatabaseConfig;
+import com.sleepycat.je.LockMode;
+import com.sleepycat.je.Transaction;
+import com.sleepycat.je.TransactionConfig;
+import com.yammer.<%= service_name %>.service.model.*;
+import com.yammer.<%= service_name %>.service.serialization.*;
+import com.yammer.partie.persist.BdbCursor;
+import com.yammer.partie.persist.BdbDatabase;
+import com.yammer.partie.persist.BdbEnvironment;
+import com.yammer.partie.persist.PartitionLocalCodec;
+import com.yammer.partie.search.IndexedBdbDatabase;
+
+import java.io.Closeable;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+public class <%= model.cap_first %>Store implements Closeable {
+    private final BdbEnvironment environment;
+    private final BdbDatabase<<%= model.cap_first %>Id, <%= model.cap_first %>> db;
+
+    public <%= model.cap_first %>Store(BdbEnvironment environment, DatabaseConfig dbConfig) {
+        this.environment = environment;
+        //db = BdbDatabase.openWithEnvironment(environment, "<%= model_plural %>", dbConfig,
+        //                                     PartitionLocalCodec.forCodec(new <%= model.cap_first %>IdCodec()),
+        //                                     new <%= model.cap_first %>Codec());
+        db = new IndexedBdbDatabase<<%= model.cap_first %>Id, <%= model.cap_first %>>(environment, "<%= model_plural %>", dbConfig,
+                                                    PartitionLocalCodec.forCodec(new <%= model.cap_first %>IdCodec()),
+                                                    new <%= model.cap_first %>Codec()) {};
+    }
+
+    public boolean create<%= model.cap_first%>(<%= model.cap_first%> <%= model %>) {
+        boolean result = false;
+        <%= model.cap_first %>Id id = new <%= model.cap_first %>Id(<%= model %>.getNetworkId(), <%= model %>.get<%= idName.cap_first %>());
+        Transaction txn = environment.getEnvironment().beginTransaction(null, new TransactionConfig());
+        try {
+            result = db.putIfAbsent(id, <%= model %>, txn);
+            txn.commit();
+        } catch (Exception e) {
+            txn.abort();
+        }
+
+        return result;
+    }
+
+    public List<<%= model.cap_first %>> get<%= model_plural.cap_first %>(long networkId) {
+        List<<%= model.cap_first %>> result = new ArrayList<>();
+        try (BdbCursor<<%= model.cap_first %>Id, <%= model.cap_first %>> cursor = db.cursor()) {
+            Optional<<%= model.cap_first %>Id> id = cursor.next();
+            while (id.isPresent()) {
+                if (id.get().getNetworkId() == networkId) {
+                    result.add(db.get(id.get(), null, LockMode.READ_UNCOMMITTED).get());
+                }   
+                id = cursor.next();
+            }   
+        }   
+        return result;
+    }
+
+    public List<<%= model.cap_first %>> search<%= model_plural.cap_first %>(long networkId, String query) {
+        try {
+            StringBuilder sb = new StringBuilder();
+            sb.append("networkId:[").append(networkId).append(" TO ").append(networkId).append("] AND (").append(query).append(")");
+            return ((IndexedBdbDatabase)db).search(sb.toString(), "<%= idName %>");
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
+    }
+
+    public Optional<<%= model.cap_first %>> get<%= model.cap_first %>(<%= model.cap_first %>Id <%= model %>Id) {
+        return db.get(<%= model %>Id, null, LockMode.READ_UNCOMMITTED);
+    }
+
+    public boolean update<%= model.cap_first %>(<%= model.cap_first %> <%= model %>) {
+        boolean result = false;
+        <%= model.cap_first %>Id id = new <%= model.cap_first %>Id(<%= model %>.getNetworkId(), <%= model %>.get<%= idName.cap_first %>());
+        Transaction txn = environment.getEnvironment().beginTransaction(null, new TransactionConfig());
+        try {
+            result = db.put(id, <%= model %>, txn);
+            txn.commit();
+        } catch (Exception e) {
+            txn.abort();
+        }
+
+        return result;
+    }
+
+    public boolean delete<%= model.cap_first %>(<%= model.cap_first %>Id <%= model %>Id) {
+        boolean result = false;
+        Transaction txn = environment.getEnvironment().beginTransaction(null, new TransactionConfig());
+        try {
+            result = db.remove(<%= model %>Id, txn);
+            txn.commit();
+        } catch (Exception e) {
+            txn.abort();
+        }
+
+        return result;
+    }
+
+    @Override
+    public void close() throws IOException {
+        db.close();
+    }
+}

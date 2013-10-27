@@ -1,0 +1,31 @@
+package com.yammer.<%= service_name %>.service.views;
+
+import com.yammer.dropwizard.views.View;
+import com.yammer.<%= service_name %>.service.model.<%= model.cap_first %>;
+import java.util.ArrayList;
+import java.util.List;
+
+public class <%= model.cap_first %>NewView extends View {
+    private final long networkId;
+    private final List<String> errors;
+
+    public <%= model.cap_first %>NewView(long networkId) {
+        super("<%= model_plural %>/new.ftl");
+        this.networkId = networkId;
+        this.errors = new ArrayList<String>();
+    }
+
+    public <%= model.cap_first %>NewView(long networkId, List<String> errors) {
+        super("<%= model_plural %>/new.ftl");
+        this.networkId = networkId;
+        this.errors = errors;
+    }
+
+    public long getNetworkId() {
+        return networkId;
+    }
+
+    public List<String> getErrors() {
+        return errors;
+    }
+}

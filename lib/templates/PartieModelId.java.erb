@@ -1,0 +1,19 @@
+package com.yammer.<%= service_name %>.service.model;
+
+public class <%= model.cap_first %>Id {
+    private long networkId;
+    private <%= idType %> <%= idName %>;
+
+    public <%= model.cap_first %>Id(long networkId, <%= idType %> <%= idName %>) {
+        this.networkId = networkId;
+        this.<%= idName %> = <%= idName %>;
+    }
+
+    public long getNetworkId() {
+        return networkId;
+    }
+
+    public <%= idType %> get<%= idName.cap_first %>() {
+        return <%= idName %>;
+    }
+}

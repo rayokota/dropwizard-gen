@@ -1,0 +1,30 @@
+package com.yammer.<%= service_name %>.service.views;
+
+import com.yammer.dropwizard.views.View;
+import com.yammer.<%= service_name %>.service.model.<%= model.cap_first %>;
+import java.util.List;
+
+public class <%= model.cap_first %>IndexView extends View {
+    private final long networkId;
+    private final String query;
+    private final List<<%= model.cap_first %>> <%= model_plural %>;
+
+    public <%= model.cap_first %>IndexView(long networkId, String query, List<<%= model.cap_first %>> <%= model_plural %>) {
+        super("<%= model_plural %>/index.ftl");
+        this.networkId = networkId;
+        this.query = query;
+        this.<%= model_plural %> = <%= model_plural %>;
+    }
+
+    public long getNetworkId() {
+        return networkId;
+    }
+
+    public String getQuery() {
+        return query;
+    }
+
+    public List<<%= model.cap_first %>> get<%= model_plural.cap_first %>() {
+        return <%= model_plural %>;
+    }
+}

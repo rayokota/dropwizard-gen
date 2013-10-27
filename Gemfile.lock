@@ -1,0 +1,36 @@
+PATH
+  remote: .
+  specs:
+    dropwizard (0.0.1)
+      artii
+      curl
+      gli
+      linguistics
+      orderedhash
+      uri_template
+
+GEM
+  remote: http://rubygems.org/
+  specs:
+    artii (2.0.1)
+    awesome_print (1.0.2)
+    curl (0.0.9)
+      awesome_print (>= 0.2.1)
+      unidecoder (>= 1.1.1)
+    gli (1.6.0)
+    json (1.7.3)
+    linguistics (1.0.9)
+    orderedhash (0.0.6)
+    rake (0.9.2.2)
+    rdoc (3.12)
+      json (~> 1.4)
+    unidecoder (1.1.1)
+    uri_template (0.4.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  dropwizard!
+  rake
+  rdoc

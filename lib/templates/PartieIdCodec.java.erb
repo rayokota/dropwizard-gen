@@ -1,0 +1,21 @@
+package com.yammer.<%= service_name %>.service.serialization;
+
+import com.yammer.<%= service_name %>.service.model.<%= model.cap_first %>Id;
+import com.yammer.partie.serialization.AbstractCodec;
+import com.yammer.partie.serialization.ReadBuffer;
+import com.yammer.partie.serialization.WriteBuffer;
+
+public class <%= model.cap_first %>IdCodec extends AbstractCodec<<%= model.cap_first %>Id> {
+
+    @Override
+    public void encode(<%= model.cap_first %>Id value, WriteBuffer buffer) {
+        buffer.writeLong(value.getNetworkId());
+        buffer.write<%= GenerateCommand.types[idType] %>(value.get<%= idName.cap_first %>());
+    }
+
+    @Override
+    public <%= model.cap_first %>Id decode(ReadBuffer buffer) {
+        return new <%= model.cap_first %>Id(
+            buffer.readLong(), buffer.read<%= GenerateCommand.types[idType] %>());
+    }
+}

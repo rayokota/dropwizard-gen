@@ -1,0 +1,92 @@
+package com.yammer.<%= service_name %>.service;
+
+import com.google.common.base.Optional;
+<% if partie %>import com.sleepycat.je.DatabaseConfig;<% end %>
+import com.yammer.dropwizard.assets.AssetsBundle;
+import com.yammer.dropwizard.config.Bootstrap;
+import com.yammer.dropwizard.config.Environment;
+import com.yammer.dropwizard.views.ViewBundle;
+import com.yammer.dropwizard.Service;
+<% if partie %>import com.yammer.partie.PartieService;<% end %>
+<% if partie %>import com.yammer.partie.cluster.ClusterConfiguration;<% end %>
+<% if partie %>import com.yammer.partie.cluster.PartitionManager;<% end %>
+<% if partie %>import com.yammer.partie.dashboard.DashboardBundle;<% end %>
+<% if partie %>import com.yammer.partie.persist.BdbEnvironment;<% end %>
+<% if partie %>import com.yammer.partie.router.Partitioner;<% end %>
+<% if partie || !resources.empty? %>import com.yammer.<%= service_name %>.service.resources.*;<% end %>
+<% if partie %>import com.yammer.<%= service_name %>.service.store.<%= model.cap_first %>Store;<% end %>
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class <%= service_name.cap_first %>Service extends <% if partie %>Partie<% end %>Service<<%= service_name.cap_first %>Configuration<% if partie %>, <%= model.cap_first %>Store<% end %>> {
+    private static final Logger LOG = LoggerFactory.getLogger(<% service_name.cap_first %>Service.class);
+
+    <% if partie %>private final DatabaseConfig dbConfig;<% end %>
+
+    public static void main(String[] args) throws Exception {
+        new <%= service_name.cap_first %>Service().run(args);
+    }
+
+    @Override
+    public void initialize(Bootstrap<<%= service_name.cap_first %>Configuration> bootstrap) {
+        bootstrap.addBundle(new AssetsBundle());
+        bootstrap.addBundle(new ViewBundle());
+        <% if partie %>addJacksonModule(new JodaModule());<% end %>
+        <% if partie %>this.dbConfig = new DatabaseConfig().setAllowCreate(true).setTransactional(true);<% end %>
+    }
+
+    <% if ! partie %>
+    @Override
+    public void run(final <%= service_name.cap_first %>Configuration config, Environment environment) throws Exception {
+        //environment.addHealthCheck(new ExampleHealthCheck());
+        //environment.addResource(new ExampleResource(config.getSampleProperty()));
+        <% resources.each do |r| %>
+        environment.addResource(new <%= r.name.cap_first %>Resource());
+        <% end %>
+    }
+    <% end %>
+
+    <% if partie %>
+    @Override
+    protected void setup(<%= service_name.cap_first %>Configuration config,
+                         Environment environment,
+                         Partitioner partitioner,
+                         PartitionManager<<%= service_name.cap_first %>Configuration, <%= model.cap_first %>Store> <%= model %>StorePartitionManager,
+                         ClusterConfiguration clusterConfig)
+    {
+        (new DashboardBundle(clusterConfig, config.getDashboardClientConfiguration())).initialize(environment);
+        environment.addResource(new <%= model.cap_first %>Resource());
+        <% resources.each do |r| %>
+        environment.addResource(new <%= r.name.cap_first %>Resource());
+        <% end %>
+    }
+
+    private static final Pattern URI_PATTERN = Pattern.compile("/networks/(.+)/<%= model_plural %>/?.*");
+
+    @Override
+    protected Optional<String> partition(String uri) {
+        final Matcher matcher = URI_PATTERN.matcher(uri);
+        if (matcher.matches()) {
+            final String networkId = matcher.group(1);
+            LOG.debug("URI matched partitioning rule, networkId = {}", networkId);
+            return Optional.of(networkId);
+        }
+        LOG.warn("URI {} did not match partitioning rule", uri);
+        return Optional.absent();
+    }
+
+    @Override
+    public <%= model.cap_first %>Store startPartition(BdbEnvironment env, <%= service_name.cap_first %>Configuration configuration) {
+        return new <%= model.cap_first %>Store(env, dbConfig);
+    }
+
+    @Override
+    public void stopPartition(<%= model.cap_first %>Store item) throws IOException {
+        item.close();
+    }
+    <% end %>
+}

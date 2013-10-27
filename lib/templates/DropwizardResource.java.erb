@@ -1,0 +1,32 @@
+package com.yammer.<%= service_name %>.service.resources;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.base.Optional;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
+import java.net.URI;
+import java.util.Collections;
+import java.util.List;
+
+@Path("<%= resource.path %>")
+public class <%= resource.name.cap_first %>Resource {
+
+    @Produces(MediaType.TEXT_PLAIN)
+    @<%= resource.method.upcase %>
+    public String <%= resource.method %>(
+        <%= p1 = resource.path_params.map { |param| "@PathParam(\"#{param}\") String #{param}" }
+            p2 = resource.params.map { |param| "@FormParam(\"#{param}\") String #{param}" }
+            (p1 + p2).join(",\n        ") %>
+        ) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Received parameters:\n");
+        <% (resource.path_params + resource.params).each do |param| %>
+        sb.append("<%= param %>=");
+        sb.append(<%= param %>);
+        sb.append("\n");
+        <% end %>
+        return sb.toString();
+    }
+
+}

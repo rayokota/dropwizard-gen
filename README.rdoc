@@ -1,0 +1,6 @@
+= dropwizard
+
+A Code Generator for Dropwizard
+
+:include:dropwizard.rdoc
+

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script type="text/javascript" src="/assets/js/jquery-1.7.2.min.js"></script>
+    <script type="text/javascript" src="/assets/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/assets/js/bootstrap-datepicker.js"></script>
+    <link href="/assets/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="/assets/css/datepicker.css" rel="stylesheet"/>
+    <script type="text/javascript">
+        $(document).ready (function () {
+            $('.delete').click (function () {
+                var targetUrl = $(this).attr('href');
+                var redirectUrl = $(this).attr('redirect_to');
+                    $.ajax({
+                        url: targetUrl,
+                        type: "DELETE",
+                        data: {
+                            // data stuff here
+                        },
+                        success: function () {
+                            window.location = redirectUrl;
+                        }
+                    });
+                return false;
+            }) ; 
+        }) ;
+    </script>
+    <style type="text/css">
+        body {
+            padding-top: 60px;
+            padding-left: 15px;
+        }   
+    </style>
+</head>
+<body>
+<div class="container">

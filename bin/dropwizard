@@ -1,0 +1,120 @@
+#!/usr/bin/env ruby
+# 1.9 adds realpath to resolve symlinks; 1.8 doesn't
+# have this method, so we add it so we get resolved symlinks
+# and compatibility
+unless File.respond_to? :realpath
+  class File #:nodoc:
+    def self.realpath path
+      return realpath(File.readlink(path)) if symlink?(path)
+      path
+    end
+  end
+end
+$: << File.expand_path(File.dirname(File.realpath(__FILE__)) + '/../lib')
+require 'rubygems'
+require 'gli'
+require 'dropwizard_version'
+require 'admin_command'
+require 'build_command'
+require 'generate_command'
+require 'model_command'
+require 'new_command'
+require 'server_command'
+require 'ext/string'
+
+include GLI
+
+program_desc 'A Code Generator for Dropwizard'
+
+version Dropwizard::VERSION
+
+#desc 'Describe some switch here'
+#switch [:s,:switch]
+
+#desc 'Describe some flag here'
+#default_value 'the default'
+#arg_name 'The name of the argument'
+#flag [:f,:flagname]
+
+desc 'Create a new Dropwizard service'
+arg_name 'APP'
+command :new do |c|
+  #c.desc 'Describe a switch to new'
+  #c.switch :s
+
+  #c.desc 'Describe a flag to new'
+  #c.default_value 'default'
+  #c.flag :f
+  c.action do |global_options,options,args|
+    cmd = Dropwizard::NewCommand.new args
+    cmd.run
+  end
+end
+
+desc 'Build a Dropwizard service'
+arg_name ''
+command :build do |c|
+  c.action do |global_options,options,args|
+    cmd = Dropwizard::BuildCommand.new args
+    cmd.run
+  end
+end
+
+desc 'Run a Dropwizard server'
+arg_name ''
+command :server do |c|
+  c.action do |global_options,options,args|
+    cmd = Dropwizard::ServerCommand.new args
+    cmd.run
+  end
+end
+
+desc 'Administer a partie cluster'
+arg_name ''
+command :admin do |c|
+  c.action do |global_options,options,args|
+    cmd = Dropwizard::AdminCommand.new args
+    cmd.run
+  end
+end
+
+desc 'Create, read, or delete instances of the model'
+arg_name '[add | get | list | delete] ...'
+command :model do |c|
+  c.action do |global_options,options,args|
+    cmd = Dropwizard::ModelCommand.new args
+    cmd.run
+  end
+end
+
+desc 'Generate a resource or scaffolding for a model'
+arg_name '[resource | model] ...'
+command :generate do |c|
+  c.action do |global_options,options,args|
+    cmd = Dropwizard::GenerateCommand.new args
+    cmd.run
+  end
+end
+
+pre do |global,command,options,args|
+  # Pre logic here
+  # Return true to proceed; false to abort and not call the
+  # chosen command
+  # Use skips_pre before a command to skip this block
+  # on that command only
+  true
+end
+
+post do |global,command,options,args|
+  # Post logic here
+  # Use skips_post before a command to skip this
+  # block on that command only
+end
+
+on_error do |exception|
+  # Error logic here
+  # return false to skip default error handling
+  true
+end
+
+exit GLI.run(ARGV)

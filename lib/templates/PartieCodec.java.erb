@@ -1,0 +1,50 @@
+package com.yammer.<%= service_name %>.service.serialization;
+
+import com.yammer.<%= service_name %>.service.model.<%= model.cap_first %>;
+import com.yammer.partie.serialization.AbstractCodec;
+import com.yammer.partie.serialization.ReadBuffer;
+import com.yammer.partie.serialization.WriteBuffer;
+
+import org.joda.time.LocalDate;
+
+public class <%= model.cap_first %>Codec extends AbstractCodec<<%= model.cap_first %>> {
+
+    @Override
+    public void encode(<%= model.cap_first %> value, WriteBuffer buffer) {
+        buffer.writeLong(value.getNetworkId());
+        <%= attrs.map { |k, v|
+              case v
+              when "float"
+                "buffer.write#{GenerateCommand.types[v]}(Float.floatToRawIntBits(value.get#{k.cap_first}()));"
+              when "double"
+                "buffer.write#{GenerateCommand.types[v]}(Double.doubleToRawLongBits(value.get#{k.cap_first}()));"
+              when "boolean"
+                "buffer.write#{GenerateCommand.types[v]}(value.get#{k.cap_first}() ? 1 : 0);"
+              when "LocalDate"
+                "buffer.write#{GenerateCommand.types[v]}(value.get#{k.cap_first}().toString());"
+              else
+                "buffer.write#{GenerateCommand.types[v]}(value.get#{k.cap_first}());"
+              end
+            }.join("\n        ") %>
+    }
+
+    @Override
+    public <%= model.cap_first %> decode(ReadBuffer buffer) {
+        return new <%= model.cap_first%>(buffer.readLong(),
+            <%= attrs.map { |k, v|
+                  case v
+                  when "float"
+                    "Float.intBitsToFloat(buffer.read#{GenerateCommand.types[v]}())"
+                  when "double"
+                    "Double.longBitsToDouble(buffer.read#{GenerateCommand.types[v]}())"
+                  when "boolean"
+                    "buffer.read#{GenerateCommand.types[v]}() == 1"
+                  when "LocalDate"
+                    "new LocalDate(buffer.read#{GenerateCommand.types[v]}())"
+                  else
+                    "buffer.read#{GenerateCommand.types[v]}()"
+                  end
+                }.join(",\n            ") %>
+        );
+    }
+}

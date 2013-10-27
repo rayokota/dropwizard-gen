@@ -1,0 +1,147 @@
+package com.yammer.<%= service_name %>.service.resources;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.base.Optional;
+import com.google.common.base.Strings;
+import com.yammer.dropwizard.views.View;
+import com.yammer.<%= service_name %>.service.model.*;
+import com.yammer.<%= service_name %>.service.store.<%= model.cap_first %>Store;
+import com.yammer.<%= service_name %>.service.views.*;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
+import java.net.URI;
+import java.util.Collections;
+import java.util.List;
+
+import org.joda.time.LocalDate;
+
+@Path("/networks/{networkId}/<%= model_plural %>")
+public class <%= model.cap_first %>Resource {
+
+    @Context
+    private UriInfo info;
+
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @POST
+    public Response add<%= model.cap_first %>(@Context <%= model.cap_first %>Store store, 
+            @PathParam("networkId") long networkId,
+            <%= model.cap_first %> <%= model %>) {
+        <%= model %>.setNetworkId(networkId);
+        boolean success = store.create<%= model.cap_first %>(<%= model %>);
+        if (!success) {
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+        }
+
+        ImmutableMap<String, String> params = new ImmutableMap.Builder<String, String>()
+                .put("networkId", String.valueOf(<%= model %>.getNetworkId()))
+                .put("<%= model %>", String.valueOf(<%= model %>.get<%= idName.cap_first %>()))
+                .build();
+        URI newLocation = info.getBaseUriBuilder().path(<%= model.cap_first %>Resource.class).buildFromMap(params);
+        return Response.created(newLocation).entity(<%= model %>).build();
+    }
+
+    @Produces(MediaType.APPLICATION_JSON)
+    @GET
+    public List<<%= model.cap_first %>> get<%= model_plural.cap_first %>(@Context <%= model.cap_first %>Store store,
+            @PathParam("networkId") long networkId,
+            @DefaultValue("") @QueryParam("q") String query) {
+        return Strings.isNullOrEmpty(query) ?
+            store.get<%= model_plural.cap_first %>(networkId) :
+            store.search<%= model_plural.cap_first %>(networkId, query);
+    }
+
+    @Produces(MediaType.APPLICATION_JSON)
+    @GET @Path("/{<%= model %>Id}")
+    public <%= model.cap_first %> get<%= model.cap_first %>(@Context <%= model.cap_first %>Store store,
+            @PathParam("networkId") long networkId,
+            @PathParam("<%= model %>Id") <%= idType %> <%= idName %>) {
+        Optional<<%= model.cap_first %>> <%= model %> = store.get<%= model.cap_first %>(new <%= model.cap_first %>Id(networkId, <%= idName %>));
+        if (<%= model %>.isPresent()) {
+            return <%= model %>.get();
+        } else {
+            throw new WebApplicationException(Response.Status.NOT_FOUND);
+        }
+    }
+
+    @DELETE @Path("/{<%= model %>Id}")
+    public Response delete<%= model.cap_first %>(@Context <%= model.cap_first %>Store store,
+            @PathParam("networkId") long networkId,
+            @PathParam("<%= model %>Id") <%= idType %> <%= idName %>) {
+        boolean success = store.delete<%= model.cap_first %>(new <%= model.cap_first %>Id(networkId, <%= idName %>));
+        if (!success) {
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+        }
+        return Response.status(Response.Status.NO_CONTENT).build();
+    }
+
+    
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Produces(MediaType.TEXT_HTML)
+    @POST
+    public View add<%= model.cap_first %>(@Context <%= model.cap_first %>Store store, 
+            @PathParam("networkId") long networkId,
+            <%= attrs.map { |k, v| type = v; if v == "LocalDate" then type += "Param" end; "@FormParam(\"#{k}\") #{type} #{k}" }.join(",\n            ") %>
+        ) {
+        <%= model.cap_first %> <%= model %> = new <%= model.cap_first %>(networkId,
+            <%= attrs.map { |k, v| val = k; if v == "LocalDate" then val += ".getLocalDate()" end; "#{val}" }.join(",\n            ") %>
+        );
+        boolean success = store.create<%= model.cap_first %>(<%= model %>);
+        if (!success) {
+            return new <%= model.cap_first %>EditView(networkId, <%= model %>, Collections.singletonList("<%= model.cap_first %> was not created."));
+        }
+
+        return new <%= model.cap_first %>ShowView(networkId, <%= model %>, "<%= model.cap_first %> was successfully created.");
+    }
+
+    @Produces(MediaType.TEXT_HTML)
+    @GET @Path("/new")
+    public <%= model.cap_first %>NewView new<%= model.cap_first %>(@Context <%= model.cap_first %>Store store, 
+            @PathParam("networkId") long networkId) {
+        return new <%= model.cap_first %>NewView(networkId);
+    }
+
+    @Produces(MediaType.TEXT_HTML)
+    @GET
+    public <%= model.cap_first %>IndexView list<%= model_plural.cap_first %>(@Context <%= model.cap_first %>Store store,
+            @PathParam("networkId") long networkId,
+            @DefaultValue("") @QueryParam("q") String query) {
+        return new <%= model.cap_first %>IndexView(networkId, query, get<%= model_plural.cap_first %>(store, networkId, query));
+    }
+
+    @Produces(MediaType.TEXT_HTML)
+    @GET @Path("/{<%= model %>Id}")
+    public <%= model.cap_first %>ShowView show<%= model.cap_first %>(@Context <%= model.cap_first %>Store store,
+            @PathParam("networkId") long networkId,
+            @PathParam("<%= model %>Id") <%= idType %> <%= idName %>) {
+        return new <%= model.cap_first %>ShowView(networkId, get<%= model.cap_first %>(store, networkId, <%= idName %>));
+    }
+
+    @Produces(MediaType.TEXT_HTML)
+    @GET @Path("/{<%= model %>Id}/edit")
+    public <%= model.cap_first %>EditView edit<%= model.cap_first %>(@Context <%= model.cap_first %>Store store,
+            @PathParam("networkId") long networkId,
+            @PathParam("<%= model %>Id") <%= idType %> <%= idName %>) {
+        return new <%= model.cap_first %>EditView(networkId, get<%= model.cap_first %>(store, networkId, <%= idName %>));
+    }
+
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Produces(MediaType.TEXT_HTML)
+    @POST @Path("/{<%= model %>Id}")
+    public View update<%= model.cap_first %>(@Context <%= model.cap_first %>Store store, 
+            @PathParam("networkId") long networkId,
+            <%= attrs.map { |k, v| type = v; if v == "LocalDate" then type += "Param" end; "@FormParam(\"#{k}\") #{type} #{k}" }.join(",\n            ") %>
+        ) {
+        <%= model.cap_first %> <%= model %> = new <%= model.cap_first %>(networkId,
+            <%= attrs.map { |k, v| val = k; if v == "LocalDate" then val += ".getLocalDate()" end; "#{val}" }.join(",\n            ") %>
+        );
+        boolean success = store.update<%= model.cap_first %>(<%= model %>);
+        if (!success) {
+            return new <%= model.cap_first %>EditView(networkId, <%= model %>, Collections.singletonList("<%= model.cap_first %> was not updated."));
+        }
+
+        return new <%= model.cap_first %>ShowView(networkId, <%= model %>, "<%= model.cap_first %> was successfully updated.");
+    }
+
+}

@@ -1,0 +1,80 @@
+package com.yammer.<%= service_name %>.service;
+
+import org.joda.time.*;
+import com.fasterxml.jackson.JsonGenerator;
+import com.fasterxml.jackson.JsonParser;
+import com.fasterxml.jackson.JsonProcessingException;
+import com.fasterxml.jackson.Version;
+import com.fasterxml.jackson.map.*;
+import com.fasterxml.jackson.map.annotation.JsonCachable;
+import com.fasterxml.jackson.type.JavaType;
+
+import java.io.IOException;
+
+class JodaModule extends Module {
+    @JsonCachable
+    private static class LocalDateDeserializer extends JsonDeserializer<LocalDate> {
+        @Override
+        public LocalDate deserialize(JsonParser jp,
+                                     DeserializationContext ctxt) throws IOException {
+
+            return new LocalDate(jp.getText());
+        }
+    }
+
+    @JsonCachable
+    private static class LocalDateSerializer extends JsonSerializer<LocalDate> {
+        @Override
+        public void serialize(LocalDate value, JsonGenerator gen, 
+                              SerializerProvider arg2)
+            throws IOException, JsonProcessingException {
+
+            gen.writeString(value.toString());
+        }
+    }
+
+    private static class JodaDeserializers extends Deserializers.Base {
+        @Override
+        public JsonDeserializer<?> findBeanDeserializer(JavaType type,
+                                                        DeserializationConfig config,
+                                                        DeserializerProvider provider,
+                                                        BeanDescription beanDesc,
+                                                        BeanProperty property) throws JsonMappingException {
+            if (LocalDate.class.isAssignableFrom(type.getRawClass())) {
+                return new LocalDateDeserializer();
+            }
+
+            return super.findBeanDeserializer(type, config, provider, beanDesc, property);
+        }
+    }
+
+    private static class JodaSerializers extends Serializers.Base {
+        @Override
+        public JsonSerializer<?> findSerializer(SerializationConfig config,
+                                                JavaType type,
+                                                BeanDescription beanDesc,
+                                                BeanProperty property) {
+            if (LocalDate.class.isAssignableFrom(type.getRawClass())) {
+                return new LocalDateSerializer();
+            }
+
+            return super.findSerializer(config, type, beanDesc, property);
+        }
+    }
+
+    @Override
+    public String getModuleName() {
+        return "JodaModule";
+    }
+
+    @Override
+    public Version version() {
+        return Version.unknownVersion();
+    }
+
+    @Override
+    public void setupModule(SetupContext context) {
+        context.addDeserializers(new JodaDeserializers());
+        context.addSerializers(new JodaSerializers());
+    }
+}

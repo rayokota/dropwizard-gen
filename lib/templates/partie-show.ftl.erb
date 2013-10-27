@@ -1,0 +1,23 @@
+<#-- @ftlvariable name="" type="com.yammer.<%= service_name %>.service.views.<%= model.cap_first %>ShowView" -->
+<#setting number_format="computer">
+<#include "../header.ftl"/>
+<div class="page-header">
+<h1>Showing <%= model.en.camel_case_to_english.cap_first %></h1>
+</div>
+
+<#if notice != "">
+<div class="alert alert-success">
+<p id="notice">${notice}</p>
+</div>
+</#if>
+
+<dl class="dl-horizontal">
+<% attrs.each_pair do |k, v| %>
+  <dt><%= k.en.camel_case_to_english.cap_first %>:</dt>
+  <dd>${<%= model %>.<%= k %><%= if v == "boolean" then "?string(\"true\", \"false\")" else "" end %>}</dd>
+<% end %>
+</dl>
+
+<a href="/networks/${networkId?string}/<%= model_plural %>/${<%= model %>.<%= idName %>?string}/edit" class="btn btn-primary">Edit</a>
+<a href="/networks/${networkId?string}/<%= model_plural %>" class="btn">Back</a>
+<#include "../footer.ftl"/>

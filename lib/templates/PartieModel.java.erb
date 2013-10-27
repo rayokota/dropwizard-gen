@@ -1,0 +1,34 @@
+package com.yammer.<%= service_name %>.service.model;
+
+import org.joda.time.LocalDate;
+
+public class <%= model.cap_first %> {
+    private long networkId;
+    <% attrs.each_pair do |k, v| %>
+    private <%= v %> <%= k %>;<% end %>
+
+    public <%= model.cap_first %>() {
+    }
+
+    public <%= model.cap_first %>(long networkId,
+        <%= attrs.map { |k, v| "#{v} #{k}" }.join(",\n        ") %>
+        ) {
+        this.networkId = networkId;
+        <% attrs.each_pair do |k, v| %>this.<%= k %> = <%= k %>;
+        <% end %>
+    }
+
+    public long getNetworkId() {
+        return networkId;
+    }
+
+    public void setNetworkId(long networkId) {
+        this.networkId = networkId;
+    }
+
+    <% attrs.each_pair do |k, v| %>
+    public <%= v %> get<%= k.cap_first %>() {
+        return <%= k %>;
+    }
+    <% end %>
+}

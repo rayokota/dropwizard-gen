@@ -1,0 +1,16 @@
+package com.yammer.<%= service_name %>.service.resources;
+
+import org.joda.time.LocalDate;
+
+public class LocalDateParam {
+
+    private final String originalValue;
+
+    public LocalDateParam(String originalValue) {
+        this.originalValue = originalValue;
+    }
+
+    public LocalDate getLocalDate() {
+        return new LocalDate(originalValue);
+    }
+}

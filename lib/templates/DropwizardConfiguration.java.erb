@@ -1,0 +1,26 @@
+package com.yammer.<%= service_name %>.service;
+
+import com.yammer.dropwizard.config.Configuration;
+<% if partie %>import com.yammer.dropwizard.client.JerseyClientConfiguration;<% end %>
+<% if partie %>import com.yammer.partie.config.PartieConfiguration;<% end %>
+import com.fasterxml.jackson.annotation.JsonProperty;
+import javax.validation.constraints.NotNull;
+
+public class <%= service_name.cap_first %>Configuration extends <% if partie %>Partie<% end %>Configuration {
+
+    @NotNull
+    @JsonProperty
+    private String sampleProperty;
+
+    public String getSampleProperty() {
+        return sampleProperty;
+    }
+
+    <% if partie %>
+    private JerseyClientConfiguration dashboardClientConfiguration = new JerseyClientConfiguration();
+
+    public JerseyClientConfiguration getDashboardClientConfiguration() {
+        return dashboardClientConfiguration;
+    }   
+    <% end %>
+}
