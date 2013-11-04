@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.yammer.dropwizard.views.View;
+import com.yammer.metrics.annotation.Timed;
 import com.yammer.<%= service_name %>.service.model.*;
 import com.yammer.<%= service_name %>.service.store.<%= model.cap_first %>Store;
 import com.yammer.<%= service_name %>.service.views.*;
@@ -25,6 +26,7 @@ public class <%= model.cap_first %>Resource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @POST
+    @Timed
     public Response add<%= model.cap_first %>(@Context <%= model.cap_first %>Store store, 
             @PathParam("networkId") long networkId,
             <%= model.cap_first %> <%= model %>) {
@@ -44,6 +46,7 @@ public class <%= model.cap_first %>Resource {
 
     @Produces(MediaType.APPLICATION_JSON)
     @GET
+    @Timed
     public List<<%= model.cap_first %>> get<%= model_plural.cap_first %>(@Context <%= model.cap_first %>Store store,
             @PathParam("networkId") long networkId,
             @DefaultValue("") @QueryParam("q") String query) {
@@ -54,6 +57,7 @@ public class <%= model.cap_first %>Resource {
 
     @Produces(MediaType.APPLICATION_JSON)
     @GET @Path("/{<%= model %>Id}")
+    @Timed
     public <%= model.cap_first %> get<%= model.cap_first %>(@Context <%= model.cap_first %>Store store,
             @PathParam("networkId") long networkId,
             @PathParam("<%= model %>Id") <%= idType %> <%= idName %>) {
@@ -66,6 +70,7 @@ public class <%= model.cap_first %>Resource {
     }
 
     @DELETE @Path("/{<%= model %>Id}")
+    @Timed
     public Response delete<%= model.cap_first %>(@Context <%= model.cap_first %>Store store,
             @PathParam("networkId") long networkId,
             @PathParam("<%= model %>Id") <%= idType %> <%= idName %>) {
@@ -80,6 +85,7 @@ public class <%= model.cap_first %>Resource {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.TEXT_HTML)
     @POST
+    @Timed
     public View add<%= model.cap_first %>(@Context <%= model.cap_first %>Store store, 
             @PathParam("networkId") long networkId,
             <%= attrs.map { |k, v| type = v; if v == "LocalDate" then type += "Param" end; "@FormParam(\"#{k}\") #{type} #{k}" }.join(",\n            ") %>
@@ -97,6 +103,7 @@ public class <%= model.cap_first %>Resource {
 
     @Produces(MediaType.TEXT_HTML)
     @GET @Path("/new")
+    @Timed
     public <%= model.cap_first %>NewView new<%= model.cap_first %>(@Context <%= model.cap_first %>Store store, 
             @PathParam("networkId") long networkId) {
         return new <%= model.cap_first %>NewView(networkId);
@@ -104,6 +111,7 @@ public class <%= model.cap_first %>Resource {
 
     @Produces(MediaType.TEXT_HTML)
     @GET
+    @Timed
     public <%= model.cap_first %>IndexView list<%= model_plural.cap_first %>(@Context <%= model.cap_first %>Store store,
             @PathParam("networkId") long networkId,
             @DefaultValue("") @QueryParam("q") String query) {
@@ -112,6 +120,7 @@ public class <%= model.cap_first %>Resource {
 
     @Produces(MediaType.TEXT_HTML)
     @GET @Path("/{<%= model %>Id}")
+    @Timed
     public <%= model.cap_first %>ShowView show<%= model.cap_first %>(@Context <%= model.cap_first %>Store store,
             @PathParam("networkId") long networkId,
             @PathParam("<%= model %>Id") <%= idType %> <%= idName %>) {
@@ -120,6 +129,7 @@ public class <%= model.cap_first %>Resource {
 
     @Produces(MediaType.TEXT_HTML)
     @GET @Path("/{<%= model %>Id}/edit")
+    @Timed
     public <%= model.cap_first %>EditView edit<%= model.cap_first %>(@Context <%= model.cap_first %>Store store,
             @PathParam("networkId") long networkId,
             @PathParam("<%= model %>Id") <%= idType %> <%= idName %>) {
@@ -129,6 +139,7 @@ public class <%= model.cap_first %>Resource {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.TEXT_HTML)
     @POST @Path("/{<%= model %>Id}")
+    @Timed
     public View update<%= model.cap_first %>(@Context <%= model.cap_first %>Store store, 
             @PathParam("networkId") long networkId,
             <%= attrs.map { |k, v| type = v; if v == "LocalDate" then type += "Param" end; "@FormParam(\"#{k}\") #{type} #{k}" }.join(",\n            ") %>
